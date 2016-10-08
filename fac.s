@@ -1,7 +1,8 @@
 #64-bit assembly
 ask: .asciz "Please input a non-negtive number:\n"
+again: .asciz "lol a non-negtive number please:\n"
 num: .asciz "%u"
-rstring: .asciz "%u!=%u\n"
+rstring: .asciz "%u!= %u\n"
 
 .global main
 
@@ -20,7 +21,23 @@ main:
   movq $num, %rdi         #load the first argument of scanf
   movq $0, %rax           #no vector register used in scanf
   call scanf              #call scanf
+  jmp .compare            #jump to compare
+  
+.again:
+  movq $0, %rax
+  movq $again, %rdi
+  call printf
 
+  leaq -8(%rbp), %rsi     #scan number again if input is negative
+  movq $num, %rdi
+  movq $0, %rax
+  call scanf
+
+.compare:
+  movq -8(%rbp), %rax     #***感谢gcc
+  testl %eax, %eax
+  js .again
+ 
 #call fac(int n);
   movq -8(%rbp), %rdi     #***move n to the first parameter
   call fac                #call fac
@@ -71,8 +88,12 @@ end:
 #int main() {
 #  int n;
 #  printf("Please input a non-negtive number:\n");
-#  scanf("%u",&n);
-#  printf("%u!=%u\n", n, fac(n));
+#  scanf("%d",&n);
+#  while(n < 0) {
+#     printf("lol a non-negtive number please:\n");
+#     scanf("%u", &n);
+#  }
+#  printf("%d!=%u\n", n, fac(n));
 #}
 #
 #unsigned fac(unsigned n) {
@@ -84,4 +105,4 @@ end:
 #    f = fac(n - 1)*n;
 #  }
 #  return f;
-#}
+#
