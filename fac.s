@@ -7,10 +7,9 @@ rstring: .asciz "%u!= %u\n"
 .global main
 
 main:
-
 #printf("Please input a non-negtive number:\n");
   pushq %rbp              #push rbp into stack
-  movq %rsp, %rbp         #initializa the base pointer
+  movq %rsp, %rbp         #initialize the base pointer
   movq $0, %rax           #no vector register used in main
   movq $ask, %rdi         #load the string address
   call printf             #call printf
@@ -23,18 +22,18 @@ main:
   call scanf              #call scanf
   jmp .compare            #jump to compare
   
-.again:
+.again:                   #scan number again if it is negative
   movq $0, %rax
   movq $again, %rdi
   call printf
 
-  leaq -8(%rbp), %rsi     #scan number again if input is negative
+  leaq -8(%rbp), %rsi     
   movq $num, %rdi
   movq $0, %rax
   call scanf
 
-.compare:
-  movq -8(%rbp), %rax     #***感谢gcc
+.compare:                 #***感谢gcc
+  movq -8(%rbp), %rax     
   testl %eax, %eax
   js .again
  

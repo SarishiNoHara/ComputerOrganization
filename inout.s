@@ -33,7 +33,7 @@ call scanf              #call scanf
 movq -8(%rbp), %rax     #reserve stack space for scanf return value 
 addq  $1, %rax          #add 1 to return value
 movq %rax, %rsi         #load the value to second parameter    
-movq $print, %rdi      #load the number
+movq $print, %rdi       #load the number
 movq $0, %rax
 call printf             #call printf
 

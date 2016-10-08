@@ -1,75 +1,108 @@
-#64-bits assembly
-mystring: .asciz "assignment3: power.s\n"
-ask: .asciz "Please input the base and exp, split by space:\n"
-number: .asciz "%d%d"
-rvalue: .asciz "%d\n"
-  
-	.global	main
+#64-bit assembly
+ask: .asciz "Please input a non-negtive number:\n"
+again: .asciz "lol a non-negtive number please:\n"
+num: .asciz "%u"
+rstring: .asciz "%u!= %u\n"
+
+.global main
+
 main:
-  movq  %rsp, %rbp        #initialize the base pointer
-  movq $0, %rax           #no vector registers in use for main
+
+#printf("Please input a non-negtive number:\n");
+  pushq %rbp              #push rbp into stack
+  movq %rsp, %rbp         #initializa the base pointer
+  movq $0, %rax           #no vector register used in main
   movq $ask, %rdi         #load the string address
-  call printf             #call printf ask user to input numbers 
+  call printf             #call printf
 
-#scanf("%d%d", &base, &exp) ask user to input two numbers split by space or enter
-  subq $16, %rsp          #reserve stack space for variable
-  leaq -16(%rbp), %rdx    #load address of stack var in rdx &exp
-  leaq -8(%rbp), %rsi     #load address &base
-  movq $number, %rdi      #load first argument of scanf
-  movq $0, %rax           #no vector registers in use for scanf
+#scanf("%u",&n);
+  subq $8, %rsp           #reserve stack space for variable
+  leaq -8(%rbp), %rsi     #load the address of stack var in rsi
+  movq $num, %rdi         #load the first argument of scanf
+  movq $0, %rax           #no vector register used in scanf
   call scanf              #call scanf
+  jmp .compare            #jump to compare
+  
+.again:
+  movq $0, %rax
+  movq $again, %rdi
+  call printf
 
-#power1(int base, int exp) pass parameters
-  movq -16(%rbp), %rax    #move exp value to rax register 
-  movq %rax, %rsi         #move exp value to second parameter 
-  movq -8(%rbp), %rax     #move base value to rax register
-  movq %rax, %rdi         #load base value to first parameter     
-  call power1             #call power1
+  leaq -8(%rbp), %rsi     #scan number again if input is negative
+  movq $num, %rdi
+  movq $0, %rax
+  call scanf
 
-#printf("%d", result)
-  movq %rax, %rsi         #move the return value to result 
-  movq $rvalue, %rdi      #load the string address 
-  movq $0, %rax           #no vector registers in use for printf 
+.compare:
+  movq -8(%rbp), %rax     #***
+  testl %eax, %eax
+  js .again
+ 
+#call fac(int n);
+  movq -8(%rbp), %rdi     #***move n to the first parameter
+  call fac                #call fac
+
+#printf("%u\n", result)
+  movq %rax, %rdx         #move result to the third parameter
+  movq $rstring, %rdi     #load the string address
+  movq $0, %rax           #no vector register used in main
   call printf             #call printf
 
 #exit program
-  mov  $0, %rdi           #load program exit code
-  call exit               #exit the program
+ #movq $0, %rdi           #load program exit code
+ #call exit               #exit program
+  leave                   #let esp = rbp and pop rbp 
+  ret                     #return
 
-power1:
+fac:
   pushq %rbp              #subroutine prologue
   movq %rsp, %rbp         #subroutine prologue
+  
+  subq $16, %rsp          #reserve stack place for variable 
+  movq %rdi, -16(%rbp)    #move the second parameter to the stack
+  cmpq $0, -16(%rbp)      #compare 0 with n 
+  jne ifcode              #if not equal to 0, jump to ifcode
 
-  movq %rdi,-16(%rbp)     #move base to stack 
-  movq %rsi,-24(%rbp)     #move exp to stack 
-  movq $1,%rax            #total = 1
-  jmp loop                #jmp to loop
+elsecode:
+  movq $1, %rax           #move 1 to rax register
+  jmp end                 #jump to end
 
-loop:
-  cmpq $0, -24(%rbp)      #compare 0 with exp
-  jle  end                #if less and equal than 0, then jump to end 
-
-  imulq -16(%rbp),%rax    #multiply base with total
-  subq $1, -24(%rbp)      #exp value minus one 
-  jmp loop                #jump to loop
+ifcode:
+  movq -16(%rbp), %rax    #move n to rax register
+  decq %rax               #decrease rax by one
+  movq %rax, %rdi         #move rax to the first parameter
+  call fac                #call fac
+  imulq -16(%rbp), %rax   #multiply n with fac(n-1)
 
 end:
-  leave                   #epilogue
-  ret                     #return from power1
+  movq -16(%rbp), %rsi    #move n to printf second parameter
+  leave                   #epilogue 
+  ret                     #epilogue
+
 
 #specification
 
+##include<stdio.h>
+#
+#unsigned fac(unsigned num);
 #int main() {
-#  int base, exp;
-#  printf("Please input the base and exp, split by space:");
-#  scanf("%d%d", &base, &exp);
-#  printf("%d\n", pow1(base, exp));
+#  int n;
+#  printf("Please input a non-negtive number:\n");
+#  scanf("%d",&n);
+#  while(n < 0) {
+#     printf("lol a non-negtive number please:\n");
+#     scanf("%u", &n);
+#  }
+#  printf("%d!=%u\n", n, fac(n));
 #}
 #
-#int pow1(int base, int exp) {
-#  int total = 1;
-#  while(exp--) {
-#    total *= base;
+#unsigned fac(unsigned n) {
+#  unsigned f;
+#  if(n == 0) {
+#    f = 1;
 #  }
-#  return total;
-#}
+#  if(n > 0) {
+#    f = fac(n - 1)*n;
+#  }
+#  return f;
+#
