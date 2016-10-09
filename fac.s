@@ -1,8 +1,8 @@
 #64-bit assembly
 ask: .asciz "Please input a non-negtive number:\n"
 again: .asciz "lol a non-negtive number please:\n"
-num: .asciz "%u"
-rstring: .asciz "%u!= %u\n"
+num: .asciz "%d"
+rstring: .asciz "%d! = %d\n"
 
 .global main
 
@@ -14,7 +14,7 @@ main:
   movq $ask, %rdi         #load the string address
   call printf             #call printf
 
-#scanf("%u",&n);
+#scanf("%d",&n);
   subq $8, %rsp           #reserve stack space for variable
   leaq -8(%rbp), %rsi     #load the address of stack var in rsi
   movq $num, %rdi         #load the first argument of scanf
@@ -22,7 +22,7 @@ main:
   call scanf              #call scanf
   jmp .compare            #jump to compare
   
-.again:                   #scan number again if it is negative
+.again:                   #scan number again if input is negative
   movq $0, %rax
   movq $again, %rdi
   call printf
@@ -32,26 +32,31 @@ main:
   movq $0, %rax
   call scanf
 
-.compare:                 #***感谢gcc
-  movq -8(%rbp), %rax     
-  testl %eax, %eax
-  js .again
+.compare:
+  movq -8(%rbp), %rax     #move n to rax
+  cmpl $0, %eax           #compare 0 with eax.***why?
+  jl   .again             #jump if less than
+
+#  movslq -8(%rbp), %rax  #sign extension 32-64
+#  testq %rax, %rax       #compare bitwise and
+#  js .again              #jump if signed
  
 #call fac(int n);
   movq -8(%rbp), %rdi     #***move n to the first parameter
   call fac                #call fac
 
-#printf("%u\n", result)
+#printf("%d\n", result)
   movq %rax, %rdx         #move result to the third parameter
   movq $rstring, %rdi     #load the string address
   movq $0, %rax           #no vector register used in main
   call printf             #call printf
 
 #exit program
- #movq $0, %rdi           #load program exit code
- #call exit               #exit program
   leave                   #let esp = rbp and pop rbp 
   ret                     #return
+
+ #movq $0, %rdi           #load program exit code
+ #call exit               #exit program
 
 fac:
   pushq %rbp              #subroutine prologue
@@ -81,22 +86,20 @@ end:
 
 #specification
 
-##include<stdio.h>
-#
-#unsigned fac(unsigned num);
+#int fac(int num);
 #int main() {
 #  int n;
 #  printf("Please input a non-negtive number:\n");
 #  scanf("%d",&n);
 #  while(n < 0) {
 #     printf("lol a non-negtive number please:\n");
-#     scanf("%u", &n);
+#     scanf("%d", &n);
 #  }
-#  printf("%d!=%u\n", n, fac(n));
+#  printf("%d!=%d\n", n, fac(n));
 #}
 #
-#unsigned fac(unsigned n) {
-#  unsigned f;
+#int fac(int n) {
+#  int f;
 #  if(n == 0) {
 #    f = 1;
 #  }
