@@ -7,9 +7,10 @@ rstring: .asciz "%d! = %d\n"
 .global main
 
 main:
-#printf("Please input a non-negtive number:\n");
   pushq %rbp              #push rbp into stack
   movq %rsp, %rbp         #initialize the base pointer
+
+#printf("Please input a non-negtive number:\n");
   movq $0, %rax           #no vector register used in main
   movq $ask, %rdi         #load the string address
   call printf             #call printf
@@ -34,9 +35,15 @@ main:
 
 .compare:
   movq -8(%rbp), %rax     #move n to rax
-  cmpl $0, %eax           #compare 0 with eax.***why?
+  cmpl $0, %eax           #because we use two's complements represent a number.Integer is 32 bits.
+                          #when scanf pass a negtive number(-9), %eax(32) is (-9), %rax(64) is (MAX_INT-9)
   jl   .again             #jump if less than
 
+# 2.
+#  movl -8(%rbp), %eax
+#  testl %eax, %eax
+#  js .again
+# 3.
 #  movslq -8(%rbp), %rax  #sign extension 32-64
 #  testq %rax, %rax       #compare bitwise and
 #  js .again              #jump if signed
