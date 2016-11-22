@@ -69,9 +69,9 @@ fac:
   pushq %rbp              #subroutine prologue
   movq %rsp, %rbp         #subroutine prologue
   
-  subq $16, %rsp          #reserve stack place for variable 
-  movq %rdi, -16(%rbp)    #move the second parameter to the stack
-  cmpq $0, -16(%rbp)      #compare 0 with n 
+  subq $8, %rsp           #reserve stack place for variable 
+  movq %rdi, -8(%rbp)     #move the second parameter to the stack
+  cmpq $0, -8(%rbp)       #compare 0 with n 
   jne ifcode              #if not equal to 0, jump to ifcode
 
 elsecode:
@@ -79,14 +79,13 @@ elsecode:
   jmp end                 #jump to end
 
 ifcode:
-  movq -16(%rbp), %rax    #move n to rax register
-  decq %rax               #decrease rax by one
-  movq %rax, %rdi         #move rax to the first parameter
+  movq -8(%rbp), %rdi     #move n to rdi register
+  decq %rdi               #decrease rdi by one
   call fac                #call fac
-  imulq -16(%rbp), %rax   #multiply n with fac(n-1)
+  imulq -8(%rbp), %rax    #multiply n with fac(n-1)
 
 end:
-  movq -16(%rbp), %rsi    #move n to printf second parameter
+  movq -8(%rbp), %rsi     #move n to printf second parameter(don't do this)
   leave                   #epilogue 
   ret                     #epilogue
 
